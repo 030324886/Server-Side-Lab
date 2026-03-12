@@ -1,10 +1,5 @@
 package com.stu.serverhello.common;
 
-/**
- * 附加题1 企业级统一响应体
- * 泛型设计：支持任意类型数据返回
- * 包含：状态码(code)、提示信息(msg)、核心数据(data)
- */
 public class Result<T> {
     private Integer code;
     private String msg;
@@ -38,7 +33,7 @@ public class Result<T> {
         return result;
     }
 
-    // 失败响应：自定义状态码+错误信息（扩展用）
+    // 失败响应：自定义状态码+错误信息
     public static <T> Result<T> error(Integer code, String msg) {
         Result<T> result = new Result<>();
         result.setCode(code);
