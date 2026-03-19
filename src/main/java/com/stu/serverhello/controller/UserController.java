@@ -3,42 +3,39 @@ package com.stu.serverhello.controller;
 import com.stu.serverhello.common.Result;
 import com.stu.serverhello.entity.User;
 import org.springframework.web.bind.annotation.*;
-
 /**
- * 改造后：统一响应体+异常测试
- * 所有接口返回Result<T>，全局异常拦截测试：故意添加1/0算术异常
+ * 任务3.1 重构后：基于自定义状态码的统一响应体
+ * 所有接口返回Result<T>，适配前后端分离业务状态码规范
+ * 接口前缀：/api/users
  */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-
-    // GET查询：返回统一响应体，故意添加算术异常（测试全局拦截）
     @GetMapping("/{id}")
     public Result<String> getUser(@PathVariable("id") Long id) {
-        // 1除以0，触发ArithmeticException
-        int a = 1 / 0;
-        // 正常返回数据（被异常覆盖，不会执行）
-        return Result.success("查询成功，正在返回ID为" + id + "的用户信息");
+        String data = "查询成功，正在返回ID为" + id + "的用户信息";
+        return Result.success(data);
     }
 
-    // POST新增：返回统一响应体
+    // 2. POST新增用户：
     @PostMapping
     public Result<String> createUser(@RequestBody User user) {
-        String msg = "新增成功，接收到用户：" + user.getName() + "，年龄：" + user.getAge();
-        return Result.success(msg);
+        String data = "新增成功，接收到用户：" + user.getName() + "，年龄：" + user.getAge();
+        return Result.success(data);
     }
-
-    // PUT更新：返回统一响应体
     @PutMapping("/{id}")
     public Result<String> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
-        String msg = "更新成功，ID" + id + "的用户已修改为：" + user.getName();
-        return Result.success(msg);
+        String data = "更新成功，ID" + id + "的用户已修改为：" + user.getName();
+        return Result.success(data);
     }
-
-    // DELETE删除：返回统一响应体
     @DeleteMapping("/{id}")
     public Result<String> deleteUser(@PathVariable("id") Long id) {
-        String msg = "删除成功，已移除ID为" + id + "的用户";
-        return Result.success(msg);
+        String data = "删除成功，已移除ID为" + id + "的用户";
+        return Result.success(data);
+    }
+    @PostMapping("/login")
+    public Result<String> login() {
+        String data = "登录成功，已生成有效Token";
+        return Result.success(data);
     }
 }
