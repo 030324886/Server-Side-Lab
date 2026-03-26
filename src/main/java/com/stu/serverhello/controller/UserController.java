@@ -1,41 +1,48 @@
 package com.stu.serverhello.controller;
 
 import com.stu.serverhello.common.Result;
-import com.stu.serverhello.entity.User;
+import com.stu.serverhello.dto.UserDTO;
+import com.stu.serverhello.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 /**
- * 任务3.1 重构后：基于自定义状态码的统一响应体
- * 所有接口返回Result<T>，适配前后端分离业务状态码规范
- * 接口前缀：/api/users
+ * 控制器层：重构后仅保留核心业务接口
+ * 依赖注入UserService，不直接处理业务逻辑，只做参数接收和响应返回
  */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    @GetMapping("/{id}")
-    public Result<String> getUser(@PathVariable("id") Long id) {
-        String data = "查询成功，正在返回ID为" + id + "的用户信息";
-        return Result.success(data);
+    // 注入业务层接口（Spring自动装配实现类UserServiceImpl）
+    @Autowired
+    private UserService userService;
+
+    // 1. 用户注册：POST /api/users（拦截器已放行）
+    @PostMapping
+    public Result<String> register(@RequestBody UserDTO userDTO) {
+        return userService.register(userDTO);
     }
 
-    // 2. POST新增用户：
-    @PostMapping
-    public Result<String> createUser(@RequestBody User user) {
-        String data = "新增成功，接收到用户：" + user.getName() + "，年龄：" + user.getAge();
-        return Result.success(data);
+    // 2. 用户登录：POST /api/users/login（拦截器已放行）
+    @PostMapping("/login")
+    public Result<String> login(@RequestBody UserDTO userDTO) {
+        return userService.login(userDTO);
     }
-    @PutMapping("/{id}")
-    public Result<String> updateUser(@PathVariable("id") Long id, @RequestBody User user) {
-        String data = "更新成功，ID" + id + "的用户已修改为：" + user.getName();
-        return Result.success(data);
+
+    // 3. 查询用户信息：GET /api/users/{id}（拦截器已放行，用于测试）
+    @GetMapping("/{id}")
+    public Result<String> getUser(@PathVariable("id") Long id) {
+        return Result.success("查询成功，正在返回ID为" + id + "的用户信息");
     }
+
+    // 可选：保留删除/更新接口，用于拦截器敏感操作测试
     @DeleteMapping("/{id}")
     public Result<String> deleteUser(@PathVariable("id") Long id) {
-        String data = "删除成功，已移除ID为" + id + "的用户";
-        return Result.success(data);
+        return Result.success("删除成功，已移除ID为" + id + "的用户");
     }
-    @PostMapping("/login")
-    public Result<String> login() {
-        String data = "登录成功，已生成有效Token";
-        return Result.success(data);
+
+    @PutMapping("/{id}")
+    public Result<String> updateUser(@PathVariable("id") Long id, @RequestBody UserDTO userDTO) {
+        return Result.success("更新成功，ID" + id + "的用户已修改为：" + userDTO.getUsername());
     }
 }

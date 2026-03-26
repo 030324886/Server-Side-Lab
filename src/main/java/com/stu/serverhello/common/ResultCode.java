@@ -1,12 +1,18 @@
 package com.stu.serverhello.common;
-
 /**
- * 任务3.1 自定义业务状态码枚举类
+ * 自定义业务状态码枚举
+ * 新增：注册/登录相关状态码
  */
 public enum ResultCode {
+    // 基础状态码
     SUCCESS(200, "操作成功"),
     ERROR(500, "系统繁忙，请稍后再试"),
-    TOKEN_INVALID(401, "登录过期，请重新登录");
+    // 权限相关
+    TOKEN_INVALID(401, "登录凭证已缺失或过期，请重新登录"),
+    // 新增：注册/登录业务状态码
+    USER_HAS_EXISTED(4001, "该用户名已被注册"),
+    USER_NOT_EXIST(4002, "该用户不存在"),
+    PASSWORD_ERROR(4003, "账号或密码错误");
 
     private final Integer code;
     private final String msg;
@@ -15,10 +21,7 @@ public enum ResultCode {
         this.code = code;
         this.msg = msg;
     }
-    public Integer getCode() {
-        return code;
-    }
-    public String getMsg() {
-        return msg;
-    }
+
+    public Integer getCode() { return code; }
+    public String getMsg() { return msg; }
 }
