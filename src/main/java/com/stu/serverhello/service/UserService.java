@@ -9,4 +9,6 @@ public interface UserService {
 
     // 登录
     Result<String> login(UserDTO userDTO);
+    //分页
+    Result<Object> getUserPage(Integer pageNum, Integer pageSize);
 }
