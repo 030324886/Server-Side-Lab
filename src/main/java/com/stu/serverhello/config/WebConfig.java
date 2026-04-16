@@ -12,12 +12,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new AuthInterceptor())
+       /* registry.addInterceptor(new AuthInterceptor())
                 .addPathPatterns("/api/**") // 拦截/api下的所有请求（多级路径）
                 .excludePathPatterns(
                         "/api/users/login"
                       //  "/api/users",
                 //"/api/users/*"
-                );
+                );*/
     }
 }
