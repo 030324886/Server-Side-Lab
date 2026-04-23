@@ -10,6 +10,7 @@ import com.stu.serverhello.entity.User;
 import com.stu.serverhello.entity.UserInfo;
 import com.stu.serverhello.mapper.UserInfoMapper;
 import com.stu.serverhello.mapper.UserMapper;
+import com.stu.serverhello.security.JwtUtil;
 import com.stu.serverhello.service.UserService;
 import com.stu.serverhello.vo.UserDetailVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +32,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     private static final String CACHE_KEY_PREFIX = "user:detail:";
 
-    // ====================== 原有方法不动 ======================
+    // 补全register方法实现
     @Override
     public Result<String> register(UserDTO userDTO) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -58,7 +62,9 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             return Result.error(ResultCode.USER_NOT_EXIST);
         }
-        return Result.success("登录成功");
+        // 生成JWT并返回
+        String jwt = jwtUtil.generateToken(userDTO.getUsername());
+        return Result.success(jwt);
     }
 
     @Override
@@ -68,12 +74,9 @@ public class UserServiceImpl implements UserService {
         return Result.success(resultPage);
     }
 
-    // ====================== 任务7：多表联查 + Redis ======================
     @Override
     public Result<UserDetailVO> getUserDetail(Long userId) {
         String key = CACHE_KEY_PREFIX + userId;
-
-        // 1 查缓存
         String json = redisTemplate.opsForValue().get(key);
         if (json != null && !json.isBlank()) {
             try {
@@ -83,47 +86,34 @@ public class UserServiceImpl implements UserService {
                 redisTemplate.delete(key);
             }
         }
-
-        // 2 查数据库
         UserDetailVO detail = userInfoMapper.getUserDetail(userId);
         if (detail == null) {
             return Result.error(ResultCode.USER_NOT_EXIST);
         }
-
-        // 3 写缓存
-        redisTemplate.opsForValue()
-                .set(key, JSONUtil.toJsonStr(detail), 10, TimeUnit.MINUTES);
-
+        redisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(detail), 10, TimeUnit.MINUTES);
         return Result.success(detail);
     }
 
-    // ====================== 更新：删缓存保证一致 ======================
     @Override
     @Transactional
     public Result<String> updateUserInfo(UserInfo userInfo) {
         if (userInfo == null || userInfo.getUserId() == null) {
             return Result.error(ResultCode.ERROR);
         }
-
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserInfo::getUserId, userInfo.getUserId());
         userInfoMapper.update(userInfo, wrapper);
-
-        // 删除旧缓存
         redisTemplate.delete(CACHE_KEY_PREFIX + userInfo.getUserId());
         return Result.success("更新成功");
     }
 
-    // ====================== 删除用户 ======================
     @Override
     @Transactional
     public Result<String> deleteUser(Long userId) {
         userMapper.deleteById(userId);
-
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserInfo::getUserId, userId);
         userInfoMapper.delete(wrapper);
-
         redisTemplate.delete(CACHE_KEY_PREFIX + userId);
         return Result.success("删除成功");
     }
